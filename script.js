@@ -13,7 +13,66 @@ firstPage.addEventListener("click", moveToCharacters);
 let imgApi = `https://starwars-visualguide.com/assets/img/characters/`;
 let charApi = `https://swapi.dev/api/people/`;
 
-let count = 1;
+// let count = 1;
+
+let imgNo = 1;
+let arNo = 0;
+
+let charData;
+let ap = 1;
+let arr = [];
+async function api(){
+    while(true){
+        let res = await fetch(`https://swapi.dev/api/people/?page=${ap}`);
+        if(!res.ok) {
+            return arr;
+        }
+        arr.push(res);
+        ap++;
+    }
+
+}
+api()
+.then(data => data.map(el => el.json()))
+.then(data => Promise.all(data))
+.then(ar => {
+    console.log(ar[0].results[0]);
+    while(ar.length > arNo){
+        console.log("while-inside");
+
+        for (let i = 0; i < ar[arNo].results.length; i++) {
+            console.log("for-inside");
+            let char = ar[arNo].results[i];
+
+            if(imgNo == 17) imgNo++;
+
+            let html = `<div class="character"><img src="${imgApi}${imgNo}.jpg" alt="starwars" class="character-img" data-id="${imgNo}"><span>${char.name}</span></div>`;
+            imageContainer.insertAdjacentHTML("beforeend", html);
+            imgNo++;
+        }
+        arNo++;
+    }
+});
+// (async function fetchApi(){
+//     let data = await api();
+//     charData = await Promise.all(data);
+//     renderData();
+// })();
+
+// function renderData(){
+//     let i = 0;
+//     while(i == charData.length){
+//         console.log(i);
+//         i++;
+//     }
+// }
+
+// async function data(arr){
+//     let array = await Promise.all(arr);
+//     console.log(array);
+// }
+
+
 
 async function getImage() {
     try {
@@ -21,12 +80,11 @@ async function getImage() {
             // let res = await fetch(`${imgApi}${count}.jpg`);
 
             let resName = await fetch(`${charApi}${count}/`);
-            let char = await resName.json();
-
-            if (!char.name) {
+            if (!resName.ok) {
                 count++;
                 continue;
             };
+            let char = await resName.json();
 
             let html = `<div class="character"><img src="${imgApi}${count}.jpg" alt="starwars" class="character-img" data-id="${count}"><span>${char.name}</span></div>`;
             imageContainer.insertAdjacentHTML("beforeend", html);
@@ -36,7 +94,7 @@ async function getImage() {
         console.error(err);
     }
 }
-getImage();
+// getImage();
 
 async function characterData(e) {
     if (e.target.classList.contains("character-img")) {
