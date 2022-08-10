@@ -10,6 +10,7 @@ closeBtn.addEventListener("click", closePopup);
 overlay.addEventListener("click", closePopup);
 firstPage.addEventListener("click", moveToCharacters);
 
+
 let apiArr = new Map();
 let detailsArr = new Map();
 
@@ -20,38 +21,43 @@ let charApi = `https://swapi.dev/api/people/`;
 let imgNo = 1;
 let ap = 1;
 
+let pos = 0;
+
+// window.addEventListener("scroll", function(){
+//     if(document.documentElement.scrollTop == document.documentElement.clientHeight - window.innerHeight){
+//         console.log("jdsfflklklklklkjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjddddddddddddddddddddddddddd");
+//         api();
+//     }
+// });
+
 async function api(){
-    while(true){
-        let res = await fetch(`https://swapi.dev/api/people/?page=${ap}`);
-        if(!res.ok) {
-            break;
+        // while(true){
+            let res = await fetch(`https://swapi.dev/api/people/?page=${ap}`);
+            if(!res.ok) {
+                // break;
+                return;
+            }
+            let data = await res.json();
+            console.log(data);
+    
+            for (let i = 0; i < data.results.length; i++) {
+                console.log("for-inside");
+                let char = data.results[i];
+    
+                if (imgNo == 17) imgNo++;
+                // let img = document.createElement("img");
+                // img.src = `${imgApi}${imgNo}.jpg`;
+                // img.addEventListener("error", function(){imgNo++; console.log(imgNo)});
+    
+                let html = `<div class="character"><img src="${imgApi}${imgNo}.jpg" alt="starwars" class="character-img" data-id="${imgNo}"><span>${char.name}</span></div>`;
+                imageContainer.insertAdjacentHTML("beforeend", html);
+                imgNo++;
+            }
+            ap++;
+            // break;
         }
-        let data = await res.json();
-        console.log(data);
-
-        for (let i = 0; i < data.results.length; i++) {
-            console.log("for-inside");
-            let char = data.results[i];
-            console.log(data.results.length);
-
-            if (imgNo == 17) imgNo++;
-            // let img = document.createElement("img");
-            // img.src = `${imgApi}${imgNo}.jpg`;
-            // img.addEventListener("error", function(){imgNo++; console.log(imgNo)});
-
-            let html = `<div class="character"><img src="${imgApi}${imgNo}.jpg" alt="starwars" class="character-img" data-id="${imgNo}"><span>${char.name}</span></div>`;
-            imageContainer.insertAdjacentHTML("beforeend", html);
-          
-            apiArr.set(imgNo, char);
-            detailsArr.set(imgNo, {});
-            imgNo++;
-        }
-        if(ap == 1) imageContainer.scrollIntoView({behavior: "smooth"});
-        ap++;
-    }
-    // imageContainer.scrollIntoView({behavior: "smooth"});
-}
-api();
+// }
+// api();
 
 // .then(data => data.map(el => el.json()))
 // .then(data => Promise.all(data))
@@ -121,21 +127,16 @@ async function fetchApi(e){
     if (e.target.classList.contains("character-img")){
         console.log(e.target);
 
-        let id = Number(e.target.dataset.id);
+        let id = e.target.dataset.id;
 
-        let chData;
-        apiArr.forEach(function(value, key){
-            if(key == id) chData = value;
-        });
-        console.log(id);
-        console.log(chData);
-        console.log(detailsArr.get(id));
-        await getSpeciesData(chData.species[0], id);
+        if(apiArr.get(id) != undefined) return;
 
-        await getHomeWorldData(chData.homeworld, id);
+        let chResponse = await fetch(`${charApi}${id}/`);
+        let chData = await chResponse.json();
 
-        await getFilmsData(chData.films, id);
-
+        apiArr.set(id, chData);
+        detailsArr.set(id, {});
+        console.log(apiArr);
     }
 }
 
@@ -145,7 +146,6 @@ async function characterData(e) {
         characterDetail.innerHTML = "";
 
         let id = e.target.dataset.id;
-        id = Number(id);
 
         let chData;
         apiArr.forEach(function(value, key){
@@ -154,30 +154,15 @@ async function characterData(e) {
 
         openPopup();
 
-        console.log(chData);
-        let details;
-        detailsArr.forEach(function(value, key){
-            if(key == id) details = value;
-        });
-        
-        if(!details.species || !details.homeworld || !details.films){
-            await loadApiData(chData, id);
-            detailsArr.forEach(function(value, key){
-                if(key == id) details = value;
-            });
-        }
-
-        console.log(details);
-        
-        species = details.species == "unknown" ? "unknown" : details.species.name;
         // let chResponse = await fetch(`${charApi}${id}/`);
         // let chData = await chResponse.json();
 
-        // await getSpeciesData(chData.species[0], id);
+        await getSpeciesData(chData.species[0], id);
+        species = detailsArr.get(id).species == "unknown" ? "unknown" : detailsArr.get(id).species.name;
 
-        // await getHomeWorldData(chData.homeworld, id);
+        await getHomeWorldData(chData.homeworld, id);
 
-        // await getFilmsData(chData.films, id);
+        await getFilmsData(chData.films, id);
         // let films = await Promise.all(filmsArr);
 
         let html = `
@@ -190,8 +175,8 @@ async function characterData(e) {
                     <span> BirthYear: ${chData.birth_year}</span>
                     <span> Gender: ${chData.gender}</span>
                     <span> Species: ${species}</span>
-                    <span> Homeworld: ${details.homeworld.name}</span>
-                    <span> Films: ${details.films.join(" , ")}</span>
+                    <span> Homeworld: ${detailsArr.get(id).homeworld.name}</span>
+                    <span> Films: ${detailsArr.get(id).films.join(" , ")}</span>
                 </div>
             </div>
         `;
@@ -275,18 +260,6 @@ async function getFilmsData(links, id) {
         // return err.message;
         detailsArr.get(id).films = err.message;
         return;
-    }
-}
-
-async function loadApiData(chData, id){
-    if (!details.species){
-        await getSpeciesData(chData.species[0], id);
-    } 
-    if(!details.homeworld){
-        await getHomeWorldData(chData.homeworld, id);
-    } 
-    if(!details.films) {
-        await getFilmsData(chData.films, id);
     }
 }
 
