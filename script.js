@@ -11,20 +11,22 @@ overlay.addEventListener("click", closePopup);
 firstPage.addEventListener("click", moveToCharacters);
 
 let apiArr = new Map();
-let detailsArr = new Map();
+let speciesMap = new Map();
+let homeworldMap = new Map();
+let filmsMap = new Map();
 
-// api
 let imgApi = `https://starwars-visualguide.com/assets/img/characters/`;
 let charApi = `https://swapi.dev/api/people/`;
 
 let imgNo = 1;
 let ap = 1;
 
-async function api(){
-    while(true){
-        let res = await fetch(`https://swapi.dev/api/people/?page=${ap}`);
-        if(!res.ok) {
-            break;
+async function api(path) {
+    try {
+        let res = await fetch(path);
+        console.log(res);
+        if (!res.ok) {
+            throw new Error("page not found");
         }
         let data = await res.json();
         console.log(data);
@@ -41,95 +43,35 @@ async function api(){
 
             let html = `<div class="character"><img src="${imgApi}${imgNo}.jpg" alt="starwars" class="character-img" data-id="${imgNo}"><span>${char.name}</span></div>`;
             imageContainer.insertAdjacentHTML("beforeend", html);
-          
+
             apiArr.set(imgNo, char);
-            detailsArr.set(imgNo, {});
             imgNo++;
         }
-        if(ap == 1) imageContainer.scrollIntoView({behavior: "smooth"});
+        if (ap == 1) imageContainer.scrollIntoView({ behavior: "smooth" });
         ap++;
+
+        api(data.next);
+    } catch (err) {
+        console.log(err);
+        console.error(err.message);
     }
-    // imageContainer.scrollIntoView({behavior: "smooth"});
 }
-api();
+api(`https://swapi.dev/api/people/?page=1`);
 
-// .then(data => data.map(el => el.json()))
-// .then(data => Promise.all(data))
-// .then(ar => {
-//     console.log(ar[0].results[0]);
-//     while(ar.length > arNo){
-//         console.log("while-inside");
-//         console.log(ar);
+// fetch(`https://swapi.dev/api/people/?page=1`).then(res => res.json()).then(data => {let lin = data.results[0].films; console.log(lin);});
 
-//         for (let i = 0; i < ar[arNo].results.length; i++) {
-//             console.log("for-inside");
-//             let char = ar[arNo].results[i];
 
-//             if(imgNo == 17) imgNo++;
-//             // let img = document.createElement("img");
-//             // img.src = `${imgApi}${imgNo}.jpg`;
-//             // img.addEventListener("error", function(){imgNo++; console.log(imgNo)});
-            
-//             let html = `<div class="character"><img src="${imgApi}${imgNo}.jpg" alt="starwars" class="character-img" data-id="${imgNo}"><span>${char.name}</span></div>`;
-//             imageContainer.insertAdjacentHTML("beforeend", html);
-//             imgNo++;
-//         }
-//         arNo++;
-//     }
-// });
-// (async function fetchApi(){
-//     let data = await api();
-//     charData = await Promise.all(data);
-//     renderData();
-// })();
-
-// function renderData(){
-//     let i = 0;
-//     while(i == charData.length){
-//         console.log(i);
-//         i++;
-//     }
-// }
-
-// async function data(arr){
-//     let array = await Promise.all(arr);
-//     console.log(array);
-// }
-// async function getImage() {
-//     try {
-//         while (count <= 83) {
-//             // let res = await fetch(`${imgApi}${count}.jpg`);
-
-//             let resName = await fetch(`${charApi}${count}/`);
-//             if (!resName.ok) {
-//                 count++;
-//                 continue;
-//             };
-//             let char = await resName.json();
-
-//             let html = `<div class="character"><img src="${imgApi}${count}.jpg" alt="starwars" class="character-img" data-id="${count}"><span>${char.name}</span></div>`;
-//             imageContainer.insertAdjacentHTML("beforeend", html);
-//             count++;
-//         }
-//     } catch (err) {
-//         console.error(err);
-//     }
-// }
-// getImage();
-
-async function fetchApi(e){
-    if (e.target.classList.contains("character-img")){
+async function fetchApi(e) {
+    if (e.target.classList.contains("character-img")) {
         console.log(e.target);
 
         let id = Number(e.target.dataset.id);
 
         let chData;
-        apiArr.forEach(function(value, key){
-            if(key == id) chData = value;
+        apiArr.forEach(function (value, key) {
+            if (key == id) chData = value;
         });
-        console.log(id);
-        console.log(chData);
-        console.log(detailsArr.get(id));
+
         await getSpeciesData(chData.species[0], id);
 
         await getHomeWorldData(chData.homeworld, id);
@@ -148,40 +90,56 @@ async function characterData(e) {
         id = Number(id);
 
         let chData;
-        apiArr.forEach(function(value, key){
-            if(key == id) chData = value;
+        apiArr.forEach(function (value, key) {
+            if (key == id) chData = value;
         });
 
         openPopup();
 
-        console.log(chData);
-        let details;
-        detailsArr.forEach(function(value, key){
-            if(key == id) details = value;
-        });
-        
-        if(!details.species || !details.homeworld || !details.films){
-            await loadApiData(chData, id);
-            detailsArr.forEach(function(value, key){
-                if(key == id) details = value;
-            });
+        let speciesLink = chData.species[0] == undefined ? 'default' : chData.species[0];
+        let species = speciesMap.get(speciesLink);
+
+        if(!species){
+            await getSpeciesData(chData.species[0], id);
+            speciesLink = chData.species[0] == undefined ? 'default' : chData.species[0];
+            species = speciesMap.get(speciesLink);
         }
+        console.log({species});
 
-        console.log(details);
-        
-        species = details.species == "unknown" ? "unknown" : details.species.name;
-        // let chResponse = await fetch(`${charApi}${id}/`);
-        // let chData = await chResponse.json();
+        let homeLink = chData.homeworld == undefined ? 'default' : chData.homeworld;
+        let homeworld = homeworldMap.get(homeLink);
 
-        // await getSpeciesData(chData.species[0], id);
+        if(!homeworld){
+            await getHomeWorldData(chData.homeworld, id);
+            homeLink = chData.homeworld == undefined ? 'default' : chData.homeworld;
+            homeworld = homeworldMap.get(homeLink);
+        }
+        console.log({homeworld});
 
-        // await getHomeWorldData(chData.homeworld, id);
+        let filmsLink = chData.films;
+        let films = filmsLink.map(link => {
+            // if(filmsMap.get(link)?.title){
+            //     await getFilmsData(chData.films, id);
+            //     return filmsMap.get(link).title;
+            // }
+            return filmsMap.get(link)?.title;
+        });
+        // films = await Promise.all(films);
 
-        // await getFilmsData(chData.films, id);
-        // let films = await Promise.all(filmsArr);
+        for(let i=0; i<filmsLink.length; i++){
+            if(!filmsMap.get(filmsLink[i])?.title){
+                // await getFilmsData(chData.films, id);
+                films = filmsLink.map(link => {
+                    return filmsMap.get(link).title;
+                });
+                console.log("films", films);
+                break;
+            }
+        }
+        console.log(films);
 
         let html = `
-            <div class="pop-up-details">
+            <div class="pop-up-details hidden">
                 <div class="pop-up-ch-image">
                     <img src="${imgApi}${id}.jpg" alt="starwars">
                 </div>
@@ -189,23 +147,29 @@ async function characterData(e) {
                     <h1>${chData.name}</h1>
                     <span> BirthYear: ${chData.birth_year}</span>
                     <span> Gender: ${chData.gender}</span>
-                    <span> Species: ${species}</span>
-                    <span> Homeworld: ${details.homeworld.name}</span>
-                    <span> Films: ${details.films.join(" , ")}</span>
+                    <span> Species: ${species.name == undefined ? "unknown" : species.name}</span>
+                    <span> Homeworld: ${homeworld.name}</span>
+                    <span> Films: ${films.join(" , ")}</span>
                 </div>
             </div>
         `;
         document.querySelector(".loading-parent").classList.add("hidden");
         characterDetail.insertAdjacentHTML("afterbegin", html);
+        // document.querySelector(".pop-up-details").addEventListener("load", function(){
+        //     document.querySelector(".loading-parent").classList.add("hidden");
+        //     document.querySelector(".pop-up-details").classList.remove("hidden");
+        // });
     }
 }
 
 async function getSpeciesData(link, id) {
     try {
-        console.log(id);
-        console.log(detailsArr.get(id).species);
+        if(link == undefined) link = 'default';
 
-        if(detailsArr.get(id).species != undefined) return;
+        console.log(id);
+        console.log(speciesMap.get(link));
+
+        if (speciesMap.get(link) != undefined) return;
 
         console.log("speciesinside");
         let response = await fetch(`${link}`);
@@ -213,13 +177,13 @@ async function getSpeciesData(link, id) {
         if (!response.ok) throw new Error("unknown");
 
         let data = await response.json();
-        // return data;
-        detailsArr.get(id).species = data;
+
+        speciesMap.set(link, data);
         return;
 
     } catch (err) {
         console.log(err.message);
-        detailsArr.get(id).species = err.message;
+        speciesMap.set(link, err.message);
         return;
         // return err.message;
     }
@@ -227,11 +191,13 @@ async function getSpeciesData(link, id) {
 
 async function getHomeWorldData(link, id) {
     try {
-        console.log(id);
-        console.log(detailsArr.get(id).homeworld);
+        if(link == undefined) link = 'default';
 
-        if(detailsArr.get(id).homeworld != undefined) return;
-        
+        console.log(id);
+        console.log(homeworldMap.get(link));
+
+        if (homeworldMap.get(link) != undefined) return;
+
         console.log("homeworldinside");
         let response = await fetch(`${link}`);
 
@@ -239,13 +205,12 @@ async function getHomeWorldData(link, id) {
 
         let data = await response.json();
         // return data;
-        detailsArr.get(id).homeworld = data;
+        homeworldMap.set(link, data);
         return;
 
     } catch (err) {
         console.log(err.message);
-        // return err.message;
-        detailsArr.get(id).homeworld = err.message;
+        homeworldMap.set(link, err.message);
         return;
     }
 }
@@ -253,39 +218,42 @@ async function getHomeWorldData(link, id) {
 async function getFilmsData(links, id) {
     try {
         console.log(id);
-        console.log(detailsArr.get(id).films);
+        // console.log(filmsMap.get(id));
 
-        if(detailsArr.get(id).films != undefined) return;
+        // if (detailsArr.get(id).films != undefined) return;
 
-        console.log("filmsinside");
         let movieName = links.map(async link => {
+            
+            if (filmsMap.get(link) != undefined) return;
+            
             let response = await fetch(`${link}`);
-
+            console.log("filmsinside");
+            
             if (!response.ok) throw new Error("unknown");
-
+            
             let data = await response.json();
-            return data.title;
+            filmsMap.set(link, data);
+            // return data.title;
         })
         // return movieName;
-        detailsArr.get(id).films = await Promise.all(movieName);
-        return ;
+        // detailsArr.get(id).films = await Promise.all(movieName);
+        return;
 
     } catch (err) {
         console.log(err.message);
-        // return err.message;
-        detailsArr.get(id).films = err.message;
+        // filmsMap.set(link, err.message);
         return;
     }
 }
 
-async function loadApiData(chData, id){
-    if (!details.species){
+async function loadApiData(chData, id) {
+    if (!details.species) {
         await getSpeciesData(chData.species[0], id);
-    } 
-    if(!details.homeworld){
+    }
+    if (!details.homeworld) {
         await getHomeWorldData(chData.homeworld, id);
-    } 
-    if(!details.films) {
+    }
+    if (!details.films) {
         await getFilmsData(chData.films, id);
     }
 }
@@ -304,3 +272,21 @@ function closePopup() {
 function moveToCharacters() {
     imageContainer.scrollIntoView({ behavior: 'smooth' });
 }
+
+
+
+// important
+
+// window.onscroll = function(ev) {
+//     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+//         // you're at the bottom of the page, load more content here.
+//     }
+// };
+
+
+// const div = document.querySelector("#div-container-for-table");
+// div.addEventListener("scroll", () => {
+//   if (div.scrollTop + div.clientHeight >= div.scrollHeight) loadMore();
+// });
+
+       
