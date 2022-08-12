@@ -185,7 +185,7 @@
   position: fixed;
   top: 20%;
   background-color: #222;
-  width: 40%;
+  min-width: 40%;
   height: auto;
   left: 50%;
   transform: translateX(-50%);

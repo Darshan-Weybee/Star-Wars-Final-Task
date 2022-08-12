@@ -117,26 +117,15 @@ async function characterData(e) {
         console.log({homeworld});
 
         let filmsLink = chData.films;
-        let films = filmsLink.map(link => {
-            // if(filmsMap.get(link)?.title){
-            //     await getFilmsData(chData.films, id);
-            //     return filmsMap.get(link).title;
-            // }
-            return filmsMap.get(link)?.title;
-        });
-        // films = await Promise.all(films);
+        let films = filmsLink.map(async link => {
 
-        for(let i=0; i<filmsLink.length; i++){
-            if(!filmsMap.get(filmsLink[i])?.title){
-                // await getFilmsData(chData.films, id);
-                films = filmsLink.map(link => {
-                    return filmsMap.get(link).title;
-                });
-                console.log("films", films);
-                break;
-            }
-        }
-        console.log(films);
+            return await reFilmsData(chData,id,link);
+
+            // return filmsMap.get(link).title;
+        });
+        films = await Promise.all(films);
+        console.log("finalfilms",films);
+
 
         let html = `
             <div class="pop-up-details hidden">
@@ -246,16 +235,12 @@ async function getFilmsData(links, id) {
     }
 }
 
-async function loadApiData(chData, id) {
-    if (!details.species) {
-        await getSpeciesData(chData.species[0], id);
-    }
-    if (!details.homeworld) {
-        await getHomeWorldData(chData.homeworld, id);
-    }
-    if (!details.films) {
+async function reFilmsData(chData,id,link) {
+    if(!filmsMap.get(link)){
         await getFilmsData(chData.films, id);
+        return filmsMap.get(link).title;
     }
+    return filmsMap.get(link).title;
 }
 
 function openPopup() {
