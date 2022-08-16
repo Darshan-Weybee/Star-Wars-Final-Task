@@ -18,15 +18,13 @@ let filmsMap = new Map();
 let imgApi = `https://starwars-visualguide.com/assets/img/characters/`;
 let charApi = `https://swapi.dev/api/people/`;
 
-let imgNo = 1;
-let ap = 1;
+// let imgNo = 1;
 
 async function api(path) {
     try {
         let res = await fetch(path);
         console.log(res);
         if (!res.ok) {
-            // return;
             throw new Error("page not found");
         }
         let data = await res.json();
@@ -37,21 +35,25 @@ async function api(path) {
             let char = data.results[i];
             console.log(data.results.length);
 
-            if (imgNo == 17) imgNo++;
-            // let img = document.createElement("img");
-            // img.src = `${imgApi}${imgNo}.jpg`;
-            // img.addEventListener("error", function(){imgNo++; console.log(imgNo)});
+            // if (imgNo == 17) imgNo++;
+            let imgNo = char.url.match(/\d+/g);
+            console.log("imageno",imgNo[0]);
 
-            let html = `<div class="character"><img src="${imgApi}${imgNo}.jpg" alt="starwars" class="character-img" data-id="${imgNo}"><span>${char.name}</span></div>`;
+            let html = `<div class="character"><img src="${imgApi}${imgNo[0]}.jpg" alt="starwars" class="character-img" data-id="${imgNo[0]}"><span>${char.name}</span></div>`;
             imageContainer.insertAdjacentHTML("beforeend", html);
 
-            apiArr.set(imgNo, char);
-            imgNo++;
+            apiArr.set(imgNo[0], char);
+            // imgNo++;
         }
-        if (ap == 1) imageContainer.scrollIntoView({ behavior: "smooth" });
-        ap++;
+        let yCoords = imageContainer.getBoundingClientRect().top;
+        if(yCoords > 0){
+            imageContainer.scrollIntoView({ behavior: "smooth" });
+        }
 
-        api(data.next);
+        if(data.next){
+            api(data.next);
+            return;
+        }
     } catch (err) {
         console.log(err);
         console.error(err.message);
@@ -118,15 +120,13 @@ async function characterData(e) {
         console.log({homeworld});
 
         let filmsLink = chData.films;
-        let films = filmsLink.map(async link => {
-
-            return await reFilmsData(chData,id,link);
-
-            // return filmsMap.get(link).title;
-        });
-        films = await Promise.all(films);
-        console.log("finalfilms",films);
-
+        let films = []; 
+        for(let link of filmsLink){
+            let filmTitle = await reFilmsData(chData,id,link);
+            console.log(filmTitle);
+            films.push(filmTitle);
+        }
+        console.log(films);
 
         let html = `
             <div class="pop-up-details hidden">
@@ -145,10 +145,11 @@ async function characterData(e) {
         `;
         document.querySelector(".loading-parent").classList.add("hidden");
         characterDetail.insertAdjacentHTML("afterbegin", html);
-        // document.querySelector(".pop-up-details").addEventListener("load", function(){
-        //     document.querySelector(".loading-parent").classList.add("hidden");
-        //     document.querySelector(".pop-up-details").classList.remove("hidden");
-        // });
+       
+        document.querySelector(".pop-up-details").addEventListener("load", function(){
+            document.querySelector(".loading-parent").classList.add("hidden");
+            document.querySelector(".pop-up-details").classList.remove("hidden");
+        });
     }
 }
 
@@ -212,19 +213,20 @@ async function getFilmsData(links, id) {
 
         // if (detailsArr.get(id).films != undefined) return;
 
-        let movieName = links.map(async link => {
+        for(let link of links){
             
-            if (filmsMap.get(link) != undefined) return;
+            if (filmsMap.get(link) == undefined){
+                let response = await fetch(`${link}`);
+                console.log("filmsinside");
+                
+                if (!response.ok) throw new Error("unknown");
+                
+                let data = await response.json();
+                filmsMap.set(link, data);
+            }
             
-            let response = await fetch(`${link}`);
-            console.log("filmsinside");
-            
-            if (!response.ok) throw new Error("unknown");
-            
-            let data = await response.json();
-            filmsMap.set(link, data);
             // return data.title;
-        })
+        }
         // return movieName;
         // detailsArr.get(id).films = await Promise.all(movieName);
         return;
@@ -238,8 +240,8 @@ async function getFilmsData(links, id) {
 
 async function reFilmsData(chData,id,link) {
     if(!filmsMap.get(link)){
-        await getFilmsData(chData.films, id);
-        return filmsMap.get(link).title;
+        return getFilmsData(chData.films, id)
+               .then(() => filmsMap.get(link).title);
     }
     return filmsMap.get(link).title;
 }

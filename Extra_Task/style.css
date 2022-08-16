@@ -1,0 +1,319 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Starting Loader start*/
+.loader-parent {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #222;
+}
+
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 40%;
+  margin-left: 10%;
+  transform: translate3d(-50%, -50%, 0);
+}
+
+.dot {
+  width: 24px;
+  height: 24px;
+  background: #3ac;
+  border-radius: 100%;
+  display: inline-block;
+  animation: slide 1s infinite;
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0.1s;
+  background: #32aacc;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+  background: #64aacc;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.3s;
+  background: #96aacc;
+}
+
+.dot:nth-child(4) {
+  animation-delay: 0.4s;
+  background: #c8aacc;
+}
+
+.dot:nth-child(5) {
+  animation-delay: 0.5s;
+  background: #faaacc;
+}
+
+@-moz-keyframes slide {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    transform: scale(2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@-webkit-keyframes slide {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    transform: scale(2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@-o-keyframes slide {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    transform: scale(2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slide {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    transform: scale(2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Starting Loader end*/
+
+.first-page {
+  background: black;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.first-page img {
+  height: 100%;
+}
+
+.first-page .first-page-button {
+  background: black;
+  cursor: pointer;
+}
+
+.images-container {
+  background-image: url(https://cdn.pixabay.com/photo/2016/11/23/15/23/cosmos-1853491__340.jpg);
+  background-size: cover;
+  margin: 0 auto;
+  margin-top: 0.3rem;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+  /* justify-content: space-around; */
+  height: auto;
+  padding: 5rem 3rem; 
+  min-height: 100vh;
+}
+
+.images-container .character {
+  display: flex;
+  flex-direction: column;
+  border: 5px solid darkgoldenrod;
+  margin: 0.5rem 0.5rem 2rem 0.5rem;
+  width: 11%;
+  height: auto;
+  padding: 0;
+  position: relative;
+}
+
+.images-container .character:hover {
+  box-shadow: white 0px 5px 15px;
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+.images-container .character img {
+  width: 100%;
+  height: 100%;
+}
+
+.images-container .character span {
+  background-color: white;
+  text-align: center;
+  padding: 0.6rem;
+  font-weight: bolder;
+  font-size: 1.5rem;
+}
+
+.details {
+  position: fixed;
+  top: 20%;
+  background-color: #222;
+  min-width: 40%;
+  height: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 1rem;
+  border: 8px solid grey;
+  z-index: 999;
+}
+
+.details .close-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1.9rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: grey;
+}
+
+.details .close-icon:hover {
+  color: white;
+  cursor: pointer;
+}
+
+.details .pop-up-details {
+  margin: 3rem;
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+}
+
+.details .pop-up-details .pop-up-ch-image img {
+  width: 18rem;
+  height: 25rem;
+}
+
+.details .pop-up-details .pop-up-ch-detail {
+  display: flex;
+  flex-direction: column;
+  color: antiquewhite;
+  gap: 2rem;
+}
+
+.details .pop-up-details .pop-up-ch-detail span {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  background-size: cover;
+  backdrop-filter: blur(3px);
+  z-index: 5;
+}
+
+/* start Loader*/
+.loading-parent {
+  text-align: center;
+  padding: 23%;
+}
+
+.loading span {
+  display: inline-block;
+  vertical-align: middle;
+  width: .8em;
+  height: .8em;
+  margin: .21em;
+  background: #007DB6;
+  border-radius: .6em;
+  animation: loading 1s infinite alternate;
+}
+
+/*
+   * Dots Colors
+   * Smarter targeting vs nth-of-type?
+   */
+.loading span:nth-of-type(2) {
+  background: #008FB2;
+  animation-delay: 0.2s;
+}
+
+.loading span:nth-of-type(3) {
+  background: #009B9E;
+  animation-delay: 0.4s;
+}
+
+.loading span:nth-of-type(4) {
+  background: #00A77D;
+  animation-delay: 0.6s;
+}
+
+.loading span:nth-of-type(5) {
+  background: #00B247;
+  animation-delay: 0.8s;
+}
+
+.loading span:nth-of-type(6) {
+  background: #5AB027;
+  animation-delay: 1.0s;
+}
+
+.loading span:nth-of-type(7) {
+  background: #A0B61E;
+  animation-delay: 1.2s;
+}
+
+/*
+   * Animation keyframes
+   * Use transition opacity instead of keyframes?
+   */
+@keyframes loading {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+/* end Loader*/
+
+.hidden {
+  display: none;
+}
